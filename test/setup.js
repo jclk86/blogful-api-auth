@@ -1,13 +1,14 @@
-process.env.TZ = 'UCT'
-process.env.NODE_ENV = 'test'
+process.env.TZ = "UCT";
+process.env.NODE_ENV = "test";
 
-require('dotenv').config()
+require("dotenv").config();
 
-process.env.TEST_DB_URL = process.env.TEST_DB_URL
-  || "postgresql://dunder-mifflin@localhost/blogful-auth-test"
+process.env.TEST_DB_URL =
+  process.env.TEST_DB_URL ||
+  "postgresql://postgres:B3Th3B3st@localhost/blogful-auth-test";
 
-const { expect } = require('chai')
-const supertest = require('supertest')
+const { expect } = require("chai");
+const supertest = require("supertest");
 
-global.expect = expect
-global.supertest = supertest
+global.expect = expect;
+global.supertest = supertest;
