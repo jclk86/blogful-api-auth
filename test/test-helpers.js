@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 function makeUsersArray() {
   return [
@@ -36,7 +37,6 @@ function makeUsersArray() {
     }
   ];
 }
-
 function makeArticlesArray(users) {
   return [
     {
@@ -77,7 +77,6 @@ function makeArticlesArray(users) {
     }
   ];
 }
-
 function makeCommentsArray(users, articles) {
   return [
     {
@@ -131,14 +130,11 @@ function makeCommentsArray(users, articles) {
     }
   ];
 }
-
 function makeExpectedArticle(users, article, comments = []) {
   const author = users.find(user => user.id === article.author_id);
-
   const number_of_comments = comments.filter(
     comment => comment.article_id === article.id
   ).length;
-
   return {
     id: article.id,
     style: article.style,
@@ -156,12 +152,10 @@ function makeExpectedArticle(users, article, comments = []) {
     }
   };
 }
-
 function makeExpectedArticleComments(users, articleId, comments) {
   const expectedComments = comments.filter(
     comment => comment.article_id === articleId
   );
-
   return expectedComments.map(comment => {
     const commentUser = users.find(user => user.id === comment.user_id);
     return {
@@ -179,7 +173,6 @@ function makeExpectedArticleComments(users, articleId, comments) {
     };
   });
 }
-
 function makeMaliciousArticle(user) {
   const maliciousArticle = {
     id: 911,
@@ -200,14 +193,12 @@ function makeMaliciousArticle(user) {
     expectedArticle
   };
 }
-
 function makeArticlesFixtures() {
   const testUsers = makeUsersArray();
   const testArticles = makeArticlesArray(testUsers);
   const testComments = makeCommentsArray(testUsers, testArticles);
   return { testUsers, testArticles, testComments };
 }
-
 function cleanTables(db) {
   return db.transaction(trx =>
     trx
@@ -236,7 +227,6 @@ function cleanTables(db) {
       )
   );
 }
-
 function seedUsers(db, users) {
   const preppedUsers = users.map(user => ({
     ...user,
@@ -252,7 +242,6 @@ function seedUsers(db, users) {
       ])
     );
 }
-
 function seedArticlesTables(db, users, articles, comments = []) {
   // use a transaction to group the queries and auto rollback on any failure
   return db.transaction(async trx => {
@@ -271,18 +260,18 @@ function seedArticlesTables(db, users, articles, comments = []) {
     }
   });
 }
-
 function seedMaliciousArticle(db, user, article) {
   return seedUsers(db, [user]).then(() =>
     db.into("blogful_articles").insert([article])
   );
 }
 
-function makeAuthHeader(user) {
-  const token = Buffer.from(`${user.user_name}:${user.password}`).toString(
-    "base64"
-  );
-  return `Basic ${token}`;
+function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
+  const token = jwt.sign({ user_id: user.id }, secret, {
+    subject: user.user_name,
+    algorithm: "HS256"
+  });
+  return `Bearer ${token}`;
 }
 
 module.exports = {
@@ -292,7 +281,6 @@ module.exports = {
   makeExpectedArticleComments,
   makeMaliciousArticle,
   makeCommentsArray,
-
   makeArticlesFixtures,
   cleanTables,
   seedArticlesTables,
